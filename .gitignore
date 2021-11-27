@@ -1,0 +1,10 @@
+# BKK data
+data/*.txt
+data/*.js
+data/csvtojsarray.exe
+
+# Leaflet
+leaflet.js
+leaflet.css
+leaflet.js.map
+images

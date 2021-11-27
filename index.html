@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BKK tervező</title>
+    <link rel="stylesheet" href="leaflet.css">
+    <script src="leaflet.js"></script>
+    <script src="data/agency.js"></script>
+    <script src="data/calendar_dates.js"></script>
+    <script src="data/feed_info.js"></script>
+    <script src="data/pathways.js"></script>
+    <script src="data/routes.js"></script>
+    <script src="data/shapes.js"></script>
+    <script src="data/stop_times.js"></script>
+    <script src="data/stops.js"></script>
+    <script src="data/trips.js"></script>
+    <style>
+        #map {
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        const map = L.map('map').setView([47.4983, 19.0408], 12.5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+        }).addTo(map);
+    </script>
+</body>
+</html>
