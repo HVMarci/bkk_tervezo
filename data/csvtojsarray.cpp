@@ -1,18 +1,17 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 
 using namespace std;
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 	if (argc <= 1) {
 		cerr << "Usage: " << argv[0] << " filename [array_name] [delimiter]" << endl;
 		return 1;
 	}
 	
 	string filename = argv[1];
-	
-	if (argc >= 3) {
-		cout << "const " << argv[2] << " = ";
-	}
 	
 	char del = ',';
 	if (argc >= 4) {
@@ -27,36 +26,51 @@ int main(int argc, char** argv) {
 		return 2;
 	}
 	
+	if (argc >= 3) {
+		cout << "const " << argv[2] << " = ";
+	}
+	
 	cout << "[\n";
 	bool isstring = false;
 	bool first = true;
+	bool header = true;
+	vector<string> vheader(1, "");
 	char ch;
 	while ((ch = is.get()) != -1) {
 		if (ch == '\r') {
 			continue;
-		} else if (ch == '\n') {	
-			cout << "\"],\n";
+		} else if (ch == '\n') {
+			if (!header) cout << "\"],\n";
 			first = true;
+			header = false;
 		} else if (ch == '\"') {
 			isstring = !isstring;
 		} else if (ch == del) {
-			if (first) {
+			if (first && !header) {
 				cout << "\t[\"";
 				first = false;
 			}
-			
-			if (!isstring) {
-				cout << "\", \"";
+
+			if (header) {
+				vheader.push_back("");
 			} else {
-				cout << ch;
+				if (!isstring) {
+					cout << "\", \"";
+				} else {
+					cout << ch;
+				}
 			}
 		} else {
-			if (first) {
-				cout << "\t[\"";
-				first = false;
-			}
 			
-			cout << ch;
+			if (header) {
+				vheader.back() += ch;
+			} else {
+				if (first) {
+					cout << "\t[\"";
+					first = false;
+				}
+				cout << ch;
+			}
 		}
 	}
 	
@@ -70,4 +84,13 @@ int main(int argc, char** argv) {
 	}
 	
 	cout << endl;
+
+	// header data
+	if (argc >= 3) {
+		cout << "const " << argv[2] << "_header = {\n\t";
+		for (int i = 0; i < vheader.size(); i++) {
+			cout << "\"" << vheader[i] << "\": " << i << ", ";
+		}
+		cout << "\n};" << endl;
+	}
 }
