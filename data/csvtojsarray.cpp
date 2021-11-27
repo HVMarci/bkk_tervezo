@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
 				}
 			}
 		} else {
-			
 			if (header) {
 				vheader.back() += ch;
 			} else {
