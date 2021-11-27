@@ -34,20 +34,22 @@ int main(int argc, char **argv) {
 	bool isstring = false;
 	bool first = true;
 	bool header = true;
+	int index = 0;
 	vector<string> vheader(1, "");
 	char ch;
 	while ((ch = is.get()) != -1) {
 		if (ch == '\r') {
 			continue;
 		} else if (ch == '\n') {
-			if (!header) cout << "\"],\n";
+			if (!header) cout << "\"},\n";
 			first = true;
 			header = false;
+			index = 0;
 		} else if (ch == '\"') {
 			isstring = !isstring;
 		} else if (ch == del) {
 			if (first && !header) {
-				cout << "\t[\"";
+				cout << "\t{" << vheader[index] << ": \"";
 				first = false;
 			}
 
@@ -55,7 +57,7 @@ int main(int argc, char **argv) {
 				vheader.push_back("");
 			} else {
 				if (!isstring) {
-					cout << "\", \"";
+					cout << "\", " << vheader[++index] << ": \"";
 				} else {
 					cout << ch;
 				}
@@ -65,7 +67,7 @@ int main(int argc, char **argv) {
 				vheader.back() += ch;
 			} else {
 				if (first) {
-					cout << "\t[\"";
+					cout << "\t{" << vheader[index] << ": \"";
 					first = false;
 				}
 				cout << ch;
