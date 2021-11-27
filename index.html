@@ -13,7 +13,7 @@
     <script src="data/pathways.js"></script>
     <script src="data/routes.js"></script>
     <script src="data/shapes.js"></script>
-    <script src="data/stop_times.js"></script>
+    <!--script src="data/stop_times.js"></script-->
     <script src="data/stops.js"></script>
     <script src="data/trips.js"></script>
     <style>
@@ -24,12 +24,189 @@
 </head>
 <body>
     <div id="map"></div>
+
+    <label for="stop_list">Megálló: </label>
+    <input type="text" list="stop_listl" name="stop_list" id="stop_list" hidden>
+    <datalist id="stop_listl"></datalist>
+    <br>
+    <label for="route_list">Járat: </label>
+    <select type="text" list="route_listl" name="route_list" id="route_list" hidden>
+
     <script>
+        const stop_list_select = document.getElementById('stop_list');
+        const stop_list_list = document.getElementById('stop_listl');
+        const route_list_select = document.getElementById('route_list');
+
         const map = L.map('map').setView([47.4983, 19.0408], 12.5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
         }).addTo(map);
+
+        var stop_names = {};
+        for (let stop of stops) {
+            let stop_name = stop.stop_name;
+            if (stop_names[stop_name]) {
+                stop_names[stop_name].push(stop);
+            } else {
+                stop_names[stop_name] = [stop];
+            }
+        }
+
+        let stop_names_keys = Object.keys(stop_names);
+        stop_names_keys.sort((a, b) => {
+            if (a < b) {
+                return -1;
+            } else if (a === b) {
+                return 0;
+            } else {
+                return 1;
+            }
+        });
+
+        for (let stop_name of stop_names_keys) {
+            let option = document.createElement('option');
+            option.value = stop_name;
+    
+            stop_list_list.appendChild(option);
+        }
+        stop_list_select.hidden = undefined;
+
+        var circles = [];
+
+        stop_list_select.onchange = () => {
+            for (let circle of circles) {
+                circle.remove();
+            }
+            circles = [];
+            
+            let stop_name = stop_list_select.value;
+            if (stop_names[stop_name]) {
+                drawStop(stop_name);
+            }
+        };
+        stop_list_select.onchange();
+
+        function drawStop(stop_name) {
+            for (let stop of stop_names[stop_name]) {
+                drawCircle(stop);
+            }
+        }
+
+        function drawCircle(stop) {
+            let circle = L.circle([stop.stop_lat, stop.stop_lon], {
+                color: 'red',
+                fill_color: '#f03',
+                fill_opacity: 0.5,
+                radius: 10
+            }).addTo(map);
+
+            circle.bindPopup(`<b>${stop.stop_name}</b>`);
+            circles.push(circle);
+        }
+
+
+
+        // Routes
+        var route_names = {};
+        for (let route of routes) {
+            let route_name = route.route_short_name || route.route_long_name;
+            if (route.route_desc) {
+                route_name += ' - ' + route.route_desc;
+            }
+
+            if (route_names[route_name]) {
+                route_names[route_name].push(route);
+            } else {
+                route_names[route_name] = [route];
+            }
+        }
+
+        let route_names_keys = Object.keys(route_names);
+        route_names_keys.sort((a1, b1) => {
+            let a = route_names[a1], b = route_names[b1];
+            if (a[0].route_sort_order && b[0].route_sort_order) {
+                if (a[0].route_sort_order < b[0].route_sort_order) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            } else {
+                if (a1 < b1) {
+                    return -1;
+                } else if (a1 === b1) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+        });
+
+        for (let route_name of route_names_keys) {
+            let option = document.createElement('option');
+            option.value = route_name;
+            option.innerText = route_name;
+    
+            route_list_select.appendChild(option);
+        }
+        route_list_select.hidden = undefined;
+
+        route_list_select.onchange = () => {
+            let route_name = route_list_select.value;
+            drawRoute(routes.find(a => (a.route_short_name || a.route_long_name) + (a.route_desc ? ' - ' + a.route_desc : '') === route_name));
+        };
+
+        //drawRoute(routes.find(a => (a.route_short_name || a.route_long_name) === 'M2'));
+
+        function drawRoute(route) {
+            let route_id = route.route_id;
+            let color = route.route_color;
+            if (!color) {
+                color = 'red';
+            } else {
+                color = '#' + color;
+            }
+
+            for (let trip of trips) {
+                if (trip.route_id == route_id) {
+                    if (trip.shape_id) {
+                        let points = [];
+
+                        for (let shape of shapes) {
+                            if (shape.shape_id == trip.shape_id) {
+                                points.push(shape);
+                            }
+                        }
+
+                        points.sort((a, b) => {
+                            if (a.shape_pt_sequence < b.shape_pt_sequence) {
+                                return -1;
+                            } else if (a.shape_pt_sequence == b.shape_pt_sequence) {
+                                return 0;
+                            } else {
+                                return 1;
+                            }
+                        });
+
+                        drawPolyline(points, color);
+                    } else {
+                        alert('No shape ID');
+                        console.error('No shape ID', trip);
+                    }
+                }
+            }
+        }
+
+        function drawPolyline(points, color) {
+            let llpoints = [];
+            for (let point of points) {
+                llpoints.push([point.shape_pt_lat, point.shape_pt_lon]);
+            }
+
+            let line = L.polyline(llpoints, {
+                color: color
+            }).addTo(map);
+        }
     </script>
 </body>
 </html>
